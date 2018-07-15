@@ -9,35 +9,35 @@ fi
 logfile=logs/webman.log
 menu () {
   clear
-  echo '           __      __      ___.       _____                         '
-  echo '          /  \    /  \ ____\_ |__    /     \ _____    ____          '
-  echo '          \   \/\/   // __ \| __ \  /  \ /  \\__  \  /    \         '
-  echo '           \        /\  ___/| \_\ \/    Y    \/ __ \|   |  \        '
-  echo '            \__/\  /  \___  >___  /\____|__  (____  /___|  /        '
-  echo '                 \/       \/    \/         \/     \/     \/         '
+  echo '             __      __      ___.       _____                            '
+  echo '            /  \    /  \ ____\_ |__    /     \ _____    ____             '
+  echo '            \   \/\/   // __ \| __ \  /  \ /  \\__  \  /    \            '
+  echo '             \        /\  ___/| \_\ \/    Y    \/ __ \|   |  \           '
+  echo '              \__/\  /  \___  >___  /\____|__  (____  /___|  /           '
+  echo '                   \/       \/    \/         \/     \/     \/            '
   echo
-  echo ' ###################################################################'
-  echo ' ##       For a list of supported commands, please type "help"    ##'
-  echo ' ##                    For the clever sysadmin.                   ##'
-  echo ' ##                                                               ##'
-  echo ' ###################################################################'
+  echo ' ########################################################################'
+  echo ' ##        For a list of supported commands, please type "help"        ##'
+  echo ' ##                      For the clever sysadmin.                      ##'
+  echo ' ##                                                                    ##'
+  echo ' ########################################################################'
   echo
 }
 while :
   do
     menu
-    read -r cmnd arg1 arg2 arg3
+    read -r cmnd arg1 arg2
     case $cmnd in
       help) help;;
-      backup) bws;;
+      backup-full) bws;;
       rws) rws;;
-	  rlws) rlws;;
+      rlws) rlws;;
       wordpress) wordpress;;
-	  nextcloud) nextcloud;;
-	  letsencrypt) letsencrypt;;
-	  netdata) netdata;;
+      nextcloud) nextcloud;;
+      letsencrypt) letsencrypt;;
+      netdata) netdata;;
       fixperms) fixperms;;
-      sslkeygen) sslkeygen ${arg1};;
+      sslkeygen) sslkeygen "${arg1}";;
       backup) backup "${arg1}" "${arg2}";;
     esac
 done

@@ -4,20 +4,22 @@ backupdir=/var/www/backups
 webdir=/var/www
 webuser=www-data:www-data
 help () {
-  echo '####################################################################'
-  echo '## This script was made to automate repetative maintenence tasks. ##'
-  echo '##   Do not use this script unless you know what you are doing.   ##'
-  echo '####################################################################'
-  echo '##                                                                ##'
-  echo '##  fixperms - Fixes common web permissions issues.               ##'
-  echo '##  backup <save_as> <dir_to_backup>                              ##'
-  echo '##  sslkeygen <certificate_name>                                  ##'
-  echo '##  bws - Full webserver backup                                   ##'
-  echo '##  rws - Restarts Web Services                                   ##'
-  echo '##  rlws - Reloads all web services                               ##'
-  echo '##  wordpress - Download latest wordpress version.                ##'
-  echo '##  nextcloud - Download latest nextcloud version.                ##'
-  echo '####################################################################'
+  echo '#######################################################################'
+  echo '##   This script was made to automate repetative maintenence tasks.  ##'
+  echo '##     Do not use this script unless you know what you are doing.    ##'
+  echo '#######################################################################'
+  echo '##                                                                   ##'
+  echo '##  fixperms - Fixes common web permissions issues.                  ##'
+  echo '##  backup <save_as> <dir_to_backup> - Directory Backup              ##'
+  echo '##  sslkeygen <certificate_name> - Self-Signed SSL & DH Parameters   ##'
+  echo '##  backup-full - Full webserver backup                              ##'
+  echo '##  rws - Restarts Web Services                                      ##'
+  echo '##  rlws - Reloads all web services                                  ##'
+  echo '##  wordpress - Download latest wordpress version.                   ##'
+  echo '##  nextcloud - Download latest nextcloud version.                   ##'
+  echo '##  netdata - Builds & Installs latest NetData Monitoring System     ##'
+  echo '##  letsencrypt - Installs latest version of letsencrypt             ##'
+  echo '#######################################################################'
   echo
   read -n1 -r -p "Press any key to continue..."
 }
@@ -32,7 +34,7 @@ logger () {
 confirmcommand () {
   while :
   do
-  read -p "Are you sure you wish to $1?" ccmnd
+  read -p -r "Are you sure you wish to $1?" ccmnd
   case $ccmnd in
   [Yy]* ) break ;;
   [Nn]* ) exit 1;;
@@ -45,7 +47,7 @@ confirmcommand () {
 wordpress () {
   wget https://wordpress.org/latest.tar.gz
   tar -xvf latest.tar.gz
-  sudo chown -R ${webuser} wordpress/ && echo -e "Fixed Ownership.\n"
+  sudo chown -R ${webuser} wordpress/ && echo -e "Fixed Ownership.\\n"
   rm latest.tar.gz
   echo "Downloaded and extrated latest version of wordpress."
   logger "Downloaded and extracted latest version of wordpress, fixed ownership."
@@ -56,7 +58,7 @@ wordpress () {
 nextcloud () {
   wget https://download.nextcloud.com/server/releases/latest.zip
   unzip latest.zip
-  chown -R ${webuser} nextcloud/ && echo -e "Fixed Ownership.\n"
+  chown -R ${webuser} nextcloud/ && echo -e "Fixed Ownership.\\n"
   rm latest.zip
   echo "Downloaded and extracted latest version of nextcloud."
   logger "Downloaded and extracted latest version of nextcloud."
@@ -74,13 +76,13 @@ sleep 3
 letsencrypt () {
 confirmcommand "Install LetsEncrypt SSL tools"
 add-apt-repository ppa:certbot/certbot && apt update
-echo -e "Let's encrypt supports apache and nginx.\nWhich would you like to install?\n1: Apache\n2: nGinx"
-read -p version
+echo -e "Let's encrypt supports apache and nginx.\\nWhich would you like to install?\\n1: Apache\\n2: nGinx"
+read -r version
 case $version in
 1) apt install python-certbot-apache
    echo -e "Installed Certbot for Apache."
    logger "Installed Certbot for Apache.";;
-2) apt install python-certbot-nginx;;
+2) apt install python-certbot-nginx
    echo -e "Installed Certbot for nGinx."
    logger "Installed Certbot for nGinx.";;
 esac
@@ -105,18 +107,18 @@ rws () {
   sleep 3
 }
 
-# Makes a full backup of the specified directory, including subdirs.
+# Makes a backup of the specified directory, including subdirs.
 backup () {
   clear
   if [ ! -d "${backupdir}" ]; then
   mkdir -p "${backupdir}"
   fi
   if [ -z "$1" ]; then
-  echo -e "You must supply a name to save the file as.\n"
+  echo -e "You must supply a name to save the file as.\\n"
   sleep 2
   else
   if [ -z "$2" ]; then
-  echo -e "You must supply a directory to make a backup of.\n"
+  echo -e "You must supply a directory to make a backup of.\\n"
   sleep 2
   else
   env GZIP=-9 tar -cvzf "${backupdir}/$1.tar.gz" -C "$2" .
@@ -126,7 +128,7 @@ backup () {
   fi
 }
 
-# Creates a full backup of the webserver, including sql.
+# Creates a full backup of the web directory and sql databases.
 bws () {
   mysqldump -u root --all-databases | tee "alldb-backup-$(date +%a-%b-%d@%T).sql"
   backup "full-web-backup" "${webdir}"
@@ -161,25 +163,24 @@ sslkeygen () {
   logger "Created SSL certificates in ${ssldir}/${arg1}" 
   fi
   # Check if DH parameters exist, and if not, create them.
-  if [ ! ${ssldir}/dhparam.pem ]; then
+  if [ ! -f "${ssldir}"/dhparam.pem ]; then
   echo -e "No Diffie Helman Parameters found. Forcing Creation..."
   sleep 2
   openssl dhparam -out ${ssldir}/dhparam.pem 4096
   # Creates nGinx snippet for Self-Signed SSL.
   printf "
-  ssl_certificate ${ssldir}/${arg1}.crt;
-  ssl_certificate_key ${ssldir}/${arg1}.key;
-  ssl_dhparam ${ssldir}/dhparam.pem;
-  " >> /etc/nginx/snippets/self-signed-${arg1}.conf
+  ssl_certificate %s/%s.crt;
+  ssl_certificate_key %s/%s.key;
+  ssl_dhparam %s/dhparam.pem;
+  " "${ssldir}" "${arg1}" "${ssldir}" "${arg1}" "${ssldir}" >> /etc/nginx/snippets/self-signed-"${arg1}".conf
   else
   printf "
-  ssl_certificate ${ssldir}/${arg1}.crt;
-  ssl_certificate_key ${ssldir}/${arg1}.key;
-  ssl_dhparam ${ssldir}/dhparam.pem;
-  " >> /etc/nginx/snippets/self-signed-${arg1}.conf
+  ssl_certificate %s/%s.crt;
+  ssl_certificate_key %s/%s.key;
+  ssl_dhparam %s/dhparam.pem;
+  " "${ssldir}" "${arg1}" "${ssldir}" "${arg1}" "${ssldir}" >> /etc/nginx/snippets/self-signed-"${arg1}".conf
   fi
-  
-  if [ -f ${ssldir}/dhparam.pem ]; then
+  if [ ! -f "${ssldir}"/dhparam.pem ]; then
   echo "Diffie Helman Parameters already exist."
   confirmcommand "Generate new Diffie Helman Parameters for ${HOSTNAME}"
   openssl dhparam -out ${ssldir}/dhparam.pem 4096
