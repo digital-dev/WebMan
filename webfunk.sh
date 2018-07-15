@@ -9,14 +9,14 @@ help () {
   echo '##   Do not use this script unless you know what you are doing.   ##'
   echo '####################################################################'
   echo '##                                                                ##'
-  echo '##  bws - Full webserver backup                                   ##'
-  echo '##  rws - Reload Web Services                                     ##'
-  echo '##  dwp - Download latest wordpress version.                      ##'
-  echo '##  dnc - Download latest nextcloud version.                      ##'
-  echo '##  rlws - Restarts all web services                              ##'
   echo '##  fixperms - Fixes common web permissions issues.               ##'
   echo '##  backup <save_as> <dir_to_backup>                              ##'
   echo '##  sslkeygen <certificate_name>                                  ##'
+  echo '##  bws - Full webserver backup                                   ##'
+  echo '##  rws - Restarts Web Services                                   ##'
+  echo '##  rlws - Reloads all web services                               ##'
+  echo '##  wordpress - Download latest wordpress version.                ##'
+  echo '##  nextcloud - Download latest nextcloud version.                ##'
   echo '####################################################################'
   echo
   read -n1 -r -p "Press any key to continue..."
@@ -42,7 +42,7 @@ confirmcommand () {
 }
 
 # Downloads the latest version of wordpress and unpacks it.
-dwp () {
+wordpress () {
   wget https://wordpress.org/latest.tar.gz
   tar -xvf latest.tar.gz
   sudo chown -R ${webuser} wordpress/ && echo -e "Fixed Ownership.\n"
@@ -53,14 +53,37 @@ dwp () {
 }
 
 # Downloads the latest version of nextcloud and unpacks it.
-dnc () {
-  wget https://download.nextcloud.com/server/releases/latest-12.zip
-  unzip latest-12.zip
+nextcloud () {
+  wget https://download.nextcloud.com/server/releases/latest.zip
+  unzip latest.zip
   chown -R ${webuser} nextcloud/ && echo -e "Fixed Ownership.\n"
-  rm latest-12.zip
+  rm latest.zip
   echo "Downloaded and extracted latest version of nextcloud."
   logger "Downloaded and extracted latest version of nextcloud."
   sleep 3
+}
+
+netdata () {
+confirmcommand "Install NetData Monitoring system"
+bash <(curl -Ss https://my-netdata.io/kickstart.sh) all
+echo "Installed NetData monitoring system."
+logger "Installed NetData monitoring system."
+sleep 3
+}
+
+letsencrypt () {
+confirmcommand "Install LetsEncrypt SSL tools"
+add-apt-repository ppa:certbot/certbot && apt update
+echo -e "Let's encrypt supports apache and nginx.\nWhich would you like to install?\n1: Apache\n2: nGinx"
+read -p version
+case $version in
+1) apt install python-certbot-apache
+   echo -e "Installed Certbot for Apache."
+   logger "Installed Certbot for Apache.";;
+2) apt install python-certbot-nginx;;
+   echo -e "Installed Certbot for nGinx."
+   logger "Installed Certbot for nGinx.";;
+esac
 }
 
 # Reloads all web services.
@@ -72,7 +95,7 @@ rlws () {
   logger "Web services have been reloaded."
   sleep 3
 }
-
+# Restarts all web services.
 rws () {
   service nginx restart
   service php7.0-fpm restart
@@ -103,7 +126,7 @@ backup () {
   fi
 }
 
-# Creates a full backup of the webserver, including sqldump.
+# Creates a full backup of the webserver, including sql.
 bws () {
   mysqldump -u root --all-databases | tee "alldb-backup-$(date +%a-%b-%d@%T).sql"
   backup "full-web-backup" "${webdir}"
@@ -122,7 +145,6 @@ fixperms () {
   sleep 3
 }
 
-
 # Creates self-signed SSL certificates and Diffie Helman Parameters.
 sslkeygen () {
   if [ ! -d ${ssldir} ]; then
@@ -138,7 +160,6 @@ sslkeygen () {
   echo "Created SSL certificates in ${ssldir}/${arg1}"
   logger "Created SSL certificates in ${ssldir}/${arg1}" 
   fi
-
   # Check if DH parameters exist, and if not, create them.
   if [ ! ${ssldir}/dhparam.pem ]; then
   echo -e "No Diffie Helman Parameters found. Forcing Creation..."

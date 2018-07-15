@@ -7,7 +7,7 @@ fi
 # Includes
 . "webfunk.sh"
 logfile=logs/webman.log
-mainscreen () {
+menu () {
   clear
   echo '           __      __      ___.       _____                         '
   echo '          /  \    /  \ ____\_ |__    /     \ _____    ____          '
@@ -25,15 +25,17 @@ mainscreen () {
 }
 while :
   do
-    mainscreen
-    read -r cmnd arg1 arg2
+    menu
+    read -r cmnd arg1 arg2 arg3
     case $cmnd in
       help) help;;
-      bws) bws;;
+      backup) bws;;
       rws) rws;;
-      dwp) dwp;;
-	  dnc) dnc;;
-      rlws) rlws;;
+	  rlws) rlws;;
+      wordpress) wordpress;;
+	  nextcloud) nextcloud;;
+	  letsencrypt) letsencrypt;;
+	  netdata) netdata;;
       fixperms) fixperms;;
       sslkeygen) sslkeygen ${arg1};;
       backup) backup "${arg1}" "${arg2}";;
