@@ -3,6 +3,12 @@ ssldir=/etc/nginx/ssl
 backupdir=/var/www/backups
 webdir=/var/www
 webuser=www-data:www-data
+if [ ! -d logs ]; then
+        mkdir logs
+fi
+if [ ! -f "$logfile" ]; then
+        touch "$logfile"
+fi
 help () {
   echo '#######################################################################'
   echo '##   This script was made to automate repetative maintenence tasks.  ##'
@@ -34,7 +40,7 @@ logger () {
 confirmcommand () {
   while :
   do
-  read -p -r "Are you sure you wish to $1?" ccmnd
+  read -r -p "Are you sure you wish to $1?" ccmnd
   case $ccmnd in
   [Yy]* ) break ;;
   [Nn]* ) exit 1;;
@@ -107,7 +113,7 @@ rws () {
   sleep 3
 }
 
-# Makes a backup of the specified directory, including subdirs.
+# Makes a full backup of the specified directory, including subdirs.
 backup () {
   clear
   if [ ! -d "${backupdir}" ]; then
@@ -128,7 +134,7 @@ backup () {
   fi
 }
 
-# Creates a full backup of the web directory and sql databases.
+# Creates a full backup of the webserver, including sql.
 bws () {
   mysqldump -u root --all-databases | tee "alldb-backup-$(date +%a-%b-%d@%T).sql"
   backup "full-web-backup" "${webdir}"
@@ -152,7 +158,7 @@ sslkeygen () {
   if [ ! -d ${ssldir} ]; then
   mkdir -p ${ssldir}
   fi
-  
+
   if [ -z "$1" ]; then
   echo -e "You must specify a name for the SSL certificate."
   sleep 2
@@ -160,12 +166,13 @@ sslkeygen () {
   confirmcommand "Create a new SSL certificate for $HOSTNAME (Self-Signed)"
   openssl req -x509 -nodes -days 365 -newkey rsa:4096 -keyout "${ssldir}/$1.key" -out "${ssldir}/$1.crt"
   echo "Created SSL certificates in ${ssldir}/${arg1}"
-  logger "Created SSL certificates in ${ssldir}/${arg1}" 
+  logger "Created SSL certificates in ${ssldir}/${arg1}"
   fi
-  # Check if DH parameters exist, and if not, create them.
+  # Check if DH parameters exist, and if not, prompt to create them.
   if [ ! -f "${ssldir}"/dhparam.pem ]; then
-  echo -e "No Diffie Helman Parameters found. Forcing Creation..."
-  sleep 2
+  echo -e "No Diffie Helman Parameters found.\n"
+  echo -e "DH Parameters are Required for SSL Perfect Forware Secrecy.\n"
+  confirmcommand "Create Diffie Helman Parameters for ${HOSTNAME}"
   openssl dhparam -out ${ssldir}/dhparam.pem 4096
   # Creates nGinx snippet for Self-Signed SSL.
   printf "
