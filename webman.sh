@@ -39,5 +39,6 @@ while :
       fixperms) fixperms;;
       sslkeygen) sslkeygen "${arg1}";;
       backup) backup "${arg1}" "${arg2}";;
+	  anti) anti;;
     esac
 done
