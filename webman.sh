@@ -1,30 +1,23 @@
 #!/bin/bash
-# Tested with Ubuntu 16.04. PHP 7.0
+# Tested with Ubuntu 18.04. PHP 7.2
 ssldir=/etc/nginx/ssl
 backupdir=/var/www/backups
 webdir=/var/www
 webuser=www-data:www-data
 logfile=logs/webman.log
-if [ ! -n "${mid}" ]; then
-mid=menu0
-fi
+logger () {
 if [ ! -d logs ]; then
-        mkdir logs
-fi
-if [ ! -f "$logfile" ]; then
-        touch "$logfile"
+        mkdir logs && touch "$logfile"
 fi
 # Helps with creating a log of all actions performed.
-logger () {
   echo -e "$(date +%a-%b-%d@%T): ${1}" >> "${logfile}"
 }
-
-# Helps confirm the use of a dangerous or irreversible command.
 confirmcommand () {
+# Helps confirm the use of a dangerous or irreversible command.
   while :
   do
   echo "This is a potentially dangerous or irreversible command."
-  read -r -p "Are you sure you wish to $1?\n" ccmnd
+  read -r -p "Are you sure you wish to $1?" ccmnd
   case $ccmnd in
   [Yy]* ) break ;;
   [Nn]* ) exit 1;;
@@ -32,9 +25,8 @@ confirmcommand () {
   esac
   done
 }
-
-# Downloads the latest version of wordpress and unpacks it.
 wordpress () {
+# Downloads the latest version of wordpress and unpacks it.
   wget https://wordpress.org/latest.tar.gz
   tar -xvf latest.tar.gz
   sudo chown -R ${webuser} wordpress/ && echo -e "Fixed Ownership.\\n"
@@ -43,9 +35,8 @@ wordpress () {
   logger "Downloaded and extracted latest version of wordpress, fixed ownership."
   sleep 3
 }
-
-# Downloads the latest version of nextcloud and unpacks it.
 nextcloud () {
+# Downloads the latest version of nextcloud and unpacks it.
   wget https://download.nextcloud.com/server/releases/latest.zip
   unzip latest.zip
   chown -R ${webuser} nextcloud/ && echo -e "Fixed Ownership.\\n"
@@ -77,28 +68,26 @@ case $version in
 esac
 sleep 3
 }
-
-# Reloads all web services.
 rlws () {
+# Reloads all web services.
   service nginx reload
-  service php7.0-fpm reload
+  service php7.2-fpm reload
   service mysql reload
   echo "Web services have been reloaded."
   logger "Web services have been reloaded."
   sleep 3
 }
-# Restarts all web services.
 rws () {
+# Restarts all web services.
   service nginx restart
-  service php7.0-fpm restart
+  service php7.2-fpm restart
   service mysql restart
   echo "Web services have been restarted."
   logger "Web services have been restarted"
   sleep 3
 }
-
-# Makes a full backup of the specified directory, including subdirs.
 backup () {
+# Makes a full backup of the specified directory, including subdirs.
   clear
   if [ ! -d "${backupdir}" ]; then
   mkdir -p "${backupdir}"
@@ -117,18 +106,16 @@ backup () {
   fi
   fi
 }
-
-# Creates a full backup of the webserver, including sql.
 bws () {
+# Creates a full backup of the webserver, including sql.
   mysqldump -u root --all-databases | tee "alldb-backup-$(date +%a-%b-%d@%T).sql"
   backup "full-web-backup" "${webdir}"
   echo "Backup completed successfully."
   logger "Full backup of web server completed."
   sleep 5
 }
-
-# Searches the web root for permission problems, and if found, fixes them.
 fixperms () {
+# Searches the web root for permission problems, and if found, fixes them.
   confirmcommand "scan and fix permission/ownership issues in ${webdir}?"
   find ${webdir}/*/html -type d -exec chmod a+rx {} +
   find ${webdir}/*/html -type f -exec chmod a+r {} +
@@ -137,8 +124,8 @@ fixperms () {
   logger "Fixed all ownership and permissions issues."
   sleep 3
 }
-
 anti () {
+# Enables some basic anti DoS measures on the host.
 confirmcommand "Harden the Linux Kernel Against DDoS Attacks"
 echo "kernel.printk = 4 4 1 7
 kernel.panic = 10 
@@ -279,12 +266,14 @@ read -r version
 case $version in
 1)apt install fail2ban nginx-core nginx-common -y
   echo -e "[Definition]\nfailregex = ^<HOST> -.*GET .*/~.*\nignoreregex =" > ${f2bfdir}/nginx-nohome.conf && echo -e "[Definition]\nfailregex = ^<HOST> -.*GET http.*\nignoreregex =" > ${f2bfdir}/nginx-noproxy.conf && cp ${f2bfdir}/apache-badbots.conf ${f2bfdir}/nginx-badbots.conf
-  echo -e "[sshd]\nenabled = true\nport    = 22\nlogpath = %(sshd_log)s\n\n[sshd-ddos]\nenabled = true\nport    = 22\nlogpath = %(sshd_log)s\n\n[nginx-nohome]\nenabled  = true\nport     = http,https\nfilter   = nginx-nohome\nlogpath  = /var/log/nginx/access.log\nmaxretry = 2\n\n[nginx-noproxy]\nenabled  = true\nport     = http,https\nfilter   = nginx-noproxy\nlogpath  = /var/log/nginx/access.log\nmaxretry = 2\n\n[nginx-badbots]\nenabled  = true\nport     = http,https\nfilter   = nginx-badbots\nlogpath  = /var/log/nginx/access.log\nmaxretry = 2\n\n[nginx-http-auth]\nenabled  = true\nfilter   = nginx-http-auth\nport     = http,https\n" > ${f2bdir}/jail.local
+  echo -e "[sshd]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[sshd-ddos]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[recidive]\nenabled = true\nbantime = -1 ; Indefinitely\nfindtime = 1d\n\n[nginx-nohome]\nenabled  = true\nport = http,https\nfilter = nginx-nohome\nlogpath = /var/log/nginx/access.log\nmaxretry = 2\n\n[nginx-noproxy]\nenabled = true\nport = http,https\nfilter = nginx-noproxy\nlogpath = /var/log/nginx/access.log\nmaxretry = 2\n\n[nginx-badbots]\nenabled  = true\nport = http,https\nfilter = nginx-badbots\nlogpath = /var/log/nginx/access.log\nmaxretry = 2\n\n[nginx-http-auth]\nenabled = true\nfilter = nginx-http-auth\nport = http,https" > ${f2bdir}/jail.local
   service fail2ban restart;;
 2)apt install fail2ban apache2 apache2-utils -y
-  ;;
+  echo -e "[sshd]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[sshd-ddos]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[recidive]\nenabled = true\nbantime = -1 ; Indefinitely\nfindtime = 1d\n\n[apache]\nenabled = true\nport = http,https\n\n[apache-overflows]\nenabled = true\nport = http,https\n\n[apache-badbots]\nenabled = true\nport = http,https" > ${f2bdir}/jail.local
+  service fail2ban restart;;
 3)apt install fail2ban -y/n
-  ;;
+  echo -e "[sshd]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[sshd-ddos]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[recidive]\nenabled = true\nbantime = -1 ; Indefinitely\nfindtime = 1d" > ${f2bdir}/jail.local
+  service fail2ban restart;;
 esac
 sleep 3
 }
@@ -295,8 +284,8 @@ logger "Installed Modern Honey Network."
 echo -e "Installed Modern Honey Network. Please see https://github.com/threatstream/mhn.\n"
 read -p -r "Press any key to continue."
 }
-# Creates self-signed SSL certificates and Diffie Helman Parameters.
 sslkeygen () {
+# Creates self-signed SSL certificates and Diffie Helman Parameters.
   if [ ! -d ${ssldir} ]; then
   mkdir -p ${ssldir}
   fi
@@ -317,17 +306,9 @@ sslkeygen () {
   confirmcommand "Create Diffie Helman Parameters for ${HOSTNAME}"
   openssl dhparam -out ${ssldir}/dhparam.pem 4096
   # Creates nGinx snippet for Self-Signed SSL.
-  printf "
-  ssl_certificate %s/%s.crt;
-  ssl_certificate_key %s/%s.key;
-  ssl_dhparam %s/dhparam.pem;
-  " "${ssldir}" "${arg1}" "${ssldir}" "${arg1}" "${ssldir}" >> /etc/nginx/snippets/self-signed-"${arg1}".conf
+  printf "ssl_certificate %s/%s.crt;\nssl_certificate_key %s/%s.key;\nssl_dhparam %s/dhparam.pem;\n" "${ssldir}" "${arg1}" "${ssldir}" "${arg1}" "${ssldir}" >> /etc/nginx/snippets/self-signed-"${arg1}".conf
   else
-  printf "
-  ssl_certificate %s/%s.crt;
-  ssl_certificate_key %s/%s.key;
-  ssl_dhparam %s/dhparam.pem;
-  " "${ssldir}" "${arg1}" "${ssldir}" "${arg1}" "${ssldir}" >> /etc/nginx/snippets/self-signed-"${arg1}".conf
+  printf "ssl_certificate %s/%s.crt;\nssl_certificate_key %s/%s.key;\nssl_dhparam %s/dhparam.pem;\n" "${ssldir}" "${arg1}" "${ssldir}" "${arg1}" "${ssldir}" >> /etc/nginx/snippets/self-signed-"${arg1}".conf
   fi
   if [ ! -f "${ssldir}"/dhparam.pem ]; then
   echo "Diffie Helman Parameters already exist."
@@ -384,11 +365,14 @@ echo -e '           ██║███╗██║██╔══╝  ██╔�
 echo -e '           ╚███╔███╔╝███████╗██████╔╝██║ ╚═╝ ██║██║  ██║██║ ╚████║         '
 echo -e '            ╚══╝╚══╝ ╚══════╝╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝         '
 echo -e ' #######################################################################'
-echo -e ' ##   This script was made to automate repetative maintenence tasks.  ##'
+echo -e ' ##   This script was made to automate repetitive maintenence tasks.  ##'
 echo -e ' ##     Do not use this script unless you know what you are doing.    ##'
 echo -e ' #######################################################################\n'
 ${mid}
 }
+if [ ! -n "${mid}" ]; then
+mid=menu0
+fi
 while :
   do
     head
@@ -410,6 +394,6 @@ while :
       backup) backup "${arg1}" "${arg2}";;
       anti) anti;;
 	  honey) honey;;
-      *) echo -e '\nI'\'m not sure I got that. Come Again'\?' && sleep 3;;
+      *) echo -e '\nI'\'m not sure I got that. Come Again'\?' && sleep 2;;
     esac
 done
