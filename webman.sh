@@ -46,45 +46,45 @@ nextcloud () {
   sleep 3
 }
 netdata () {
-confirmcommand "Install NetData Monitoring system"
-bash <(curl -Ss https://my-netdata.io/kickstart.sh) all
-echo "Installed NetData monitoring system."
-logger "Installed NetData monitoring system."
-sleep 3
+  confirmcommand "Install NetData Monitoring system"
+  bash <(curl -Ss https://my-netdata.io/kickstart.sh) all
+  echo "Installed NetData monitoring system."
+  logger "Installed NetData monitoring system."
+  sleep 3
 }
 letsencrypt () {
-confirmcommand "Install LetsEncrypt SSL tools"
-add-apt-repository ppa:certbot/certbot && apt update
-echo -e "Let's encrypt supports apache and nginx.\\nWhich would you like to install?\\n1: Apache\\n2: nGinx"
-read -r version
-case $version in
-1) apt install python-certbot-apache
-   echo -e "Installed Certbot for Apache."
-   logger "Installed Certbot for Apache.";;
-2) apt install python-certbot-nginx
-   echo -e "Installed Certbot for nGinx."
-   logger "Installed Certbot for nGinx.";;
-*) echo -e '\nI'\'m not sure I got that. Come Again'\?';;
-esac
-sleep 3
+  confirmcommand "Install LetsEncrypt SSL tools"
+  add-apt-repository ppa:certbot/certbot && apt update
+  echo -e "Let's encrypt supports apache and nginx.\\nWhich would you like to install?\\n1: Apache\\n2: nGinx"
+  read -r version
+  case $version in
+  1) apt install python-certbot-apache
+     echo -e "Installed Certbot for Apache."
+     logger "Installed Certbot for Apache.";;
+  2) apt install python-certbot-nginx
+     echo -e "Installed Certbot for nGinx."
+     logger "Installed Certbot for nGinx.";;
+  *) echo -e '\nI'\'m not sure I got that. Come Again'\?';;
+  esac
+  read -p -r "Press any key to continue."
 }
 rlws () {
 # Reloads all web services.
   service nginx reload
-  service php7.2-fpm reload
+  service php7.3-fpm reload
   service mysql reload
   echo "Web services have been reloaded."
   logger "Web services have been reloaded."
-  sleep 3
+  read -p -r "Press any key to continue."
 }
 rws () {
 # Restarts all web services.
   service nginx restart
-  service php7.2-fpm restart
+  service php7.3-fpm restart
   service mysql restart
   echo "Web services have been restarted."
   logger "Web services have been restarted"
-  sleep 3
+  read -p -r "Press any key to continue."
 }
 backup () {
 # Makes a full backup of the specified directory, including subdirs.
@@ -102,7 +102,7 @@ backup () {
   else
   env GZIP=-9 tar -cvzf "${backupdir}/$1.tar.gz" -C "$2" .
   logger "Backup of $2 completed."
-  sleep 3
+  read -p -r "Press any key to continue."
   fi
   fi
 }
@@ -112,7 +112,7 @@ bws () {
   backup "full-web-backup" "${webdir}"
   echo "Backup completed successfully."
   logger "Full backup of web server completed."
-  sleep 5
+  read -p -r "Press any key to continue."
 }
 fixperms () {
 # Searches the web root for permission problems, and if found, fixes them.
@@ -122,7 +122,7 @@ fixperms () {
   chown -R ${webuser} ${webdir}/*/html
   echo "All permissions and ownership has been fixed."
   logger "Fixed all ownership and permissions issues."
-  sleep 3
+  read -p -r "Press any key to continue."
 }
 anti () {
 # Enables some basic anti DoS measures on the host.
@@ -254,35 +254,36 @@ iptables-save > /etc/iptables/rules.v4
 iptables-save > /etc/iptables/rules.v6
 echo -e "Hardened linux kernel against DDoS Attacks."
 logger "Hardened linux kernel against DDoS Attacks."
-sleep 3
+read -p -r "Press any key to continue."
 }
 fail2ban () {
-f2bfdir=/etc/fail2ban/filter.d
-f2bdir=/etc/fail2ban
-echo 
-logger "Installed and set up Fail2ban Jails."
-echo -e "Depending on your focus, WebMan can apply Fail2ban in 3 different ways.\n 1. nGinx\n2. Apache\n3. SSH Only\n"
-read -r version
-case $version in
-1)apt install fail2ban nginx-core nginx-common -y
-  echo -e "[Definition]\nfailregex = ^<HOST> -.*GET .*/~.*\nignoreregex =" > ${f2bfdir}/nginx-nohome.conf && echo -e "[Definition]\nfailregex = ^<HOST> -.*GET http.*\nignoreregex =" > ${f2bfdir}/nginx-noproxy.conf && cp ${f2bfdir}/apache-badbots.conf ${f2bfdir}/nginx-badbots.conf
-  echo -e "[sshd]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[sshd-ddos]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[recidive]\nenabled = true\nbantime = -1 ; Indefinitely\nfindtime = 1d\n\n[nginx-nohome]\nenabled  = true\nport = http,https\nfilter = nginx-nohome\nlogpath = /var/log/nginx/access.log\nmaxretry = 2\n\n[nginx-noproxy]\nenabled = true\nport = http,https\nfilter = nginx-noproxy\nlogpath = /var/log/nginx/access.log\nmaxretry = 2\n\n[nginx-badbots]\nenabled  = true\nport = http,https\nfilter = nginx-badbots\nlogpath = /var/log/nginx/access.log\nmaxretry = 2\n\n[nginx-http-auth]\nenabled = true\nfilter = nginx-http-auth\nport = http,https" > ${f2bdir}/jail.local
-  service fail2ban restart;;
-2)apt install fail2ban apache2 apache2-utils -y
-  echo -e "[sshd]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[sshd-ddos]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[recidive]\nenabled = true\nbantime = -1 ; Indefinitely\nfindtime = 1d\n\n[apache]\nenabled = true\nport = http,https\n\n[apache-overflows]\nenabled = true\nport = http,https\n\n[apache-badbots]\nenabled = true\nport = http,https" > ${f2bdir}/jail.local
-  service fail2ban restart;;
-3)apt install fail2ban -y/n
-  echo -e "[sshd]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[sshd-ddos]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[recidive]\nenabled = true\nbantime = -1 ; Indefinitely\nfindtime = 1d" > ${f2bdir}/jail.local
-  service fail2ban restart;;
-esac
-sleep 3
+  f2bfdir=/etc/fail2ban/filter.d
+  f2bdir=/etc/fail2ban
+  echo
+  echo -e "Depending on your focus, WebMan can apply Fail2ban in 3 different ways.\n1. nGinx\n2. Apache\n3. SSH Only\n"
+  read -r version
+  case $version in
+  1)apt install fail2ban -y
+    echo -e "[Definition]\nfailregex = ^<HOST> -.*GET .*/~.*\nignoreregex =" > ${f2bfdir}/nginx-nohome.conf && echo -e "[Definition]\nfailregex = ^<HOST> -.*GET http.*\nignoreregex =" > ${f2bfdir}/nginx-noproxy.conf && cp ${f2bfdir}/apache-badbots.conf ${f2bfdir}/nginx-badbots.conf
+    echo -e "[sshd]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[sshd-ddos]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[recidive]\nenabled = true\nbantime = -1 ; Indefinitely\nfindtime = 1d\n\n[nginx-nohome]\nenabled  = true\nport = http,https\nfilter = nginx-nohome\nlogpath = /var/log/nginx/access.log\nmaxretry = 2\n\n[nginx-noproxy]\nenabled = true\nport = http,https\nfilter = nginx-noproxy\nlogpath = /var/log/nginx/access.log\nmaxretry = 2\n\n[nginx-badbots]\nenabled  = true\nport = http,https\nfilter = nginx-badbots\nlogpath = /var/log/nginx/access.log\nmaxretry = 2\n\n[nginx-http-auth]\nenabled = true\nfilter = nginx-http-auth\nport = http,https" > ${f2bdir}/jail.local
+    service fail2ban restart;;
+  2)apt install fail2ban -y
+    echo -e "[sshd]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[sshd-ddos]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[recidive]\nenabled = true\nbantime = -1 ; Indefinitely\nfindtime = 1d\n\n[apache]\nenabled = true\nport = http,https\n\n[apache-overflows]\nenabled = true\nport = http,https\n\n[apache-badbots]\nenabled = true\nport = http,https" > ${f2bdir}/jail.local
+    service fail2ban restart;;
+  3)apt install fail2ban -y
+    echo -e "[sshd]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[sshd-ddos]\nenabled = true\nport = 22\nlogpath = %(sshd_log)s\n\n[recidive]\nenabled = true\nbantime = -1 ; Indefinitely\nfindtime = 1d" > ${f2bdir}/jail.local
+    service fail2ban restart;;
+  esac
+  logger "Installed and set up Fail2ban Jails."
+  read -p -r "Press any key to continue."
 }
 honey () {
-git clone https://github.com/threatstream/mhn.git
-./mhn/install.sh
-logger "Installed Modern Honey Network."
-echo -e "Installed Modern Honey Network. Please see https://github.com/threatstream/mhn.\n"
-read -p -r "Press any key to continue."
+  confirmcommand "install the Modern Honey Network (MHN) onto this server?"
+  git clone https://github.com/threatstream/mhn.git
+  ./mhn/install.sh
+  echo -e "Installed Modern Honey Network. Please see https://github.com/threatstream/mhn.\n"
+  logger "Installed Modern Honey Network."
+  read -p -r "Press any key to continue."
 }
 sslkeygen () {
 # Creates self-signed SSL certificates and Diffie Helman Parameters.
@@ -343,8 +344,8 @@ menu2 () {
   echo ' ##  sslkeygen <certificate_name> - Self-Signed SSL & DH Parameters   ##'
   echo ' ##  anti - Enables Simple Anti DDoS Measures                         ##'
   echo ' ##  honey - Installs MHN (Modern Honey Network)                      ##'
-  echo ' ##  home - Back to main menu.                                        ##'
   echo ' ##  fail2ban - Installs and configures fail2ban jails                ##'
+  echo ' ##  home - Back to main menu.                                        ##'
   echo ' #######################################################################'
 }
 menu3 () {
@@ -357,18 +358,20 @@ menu3 () {
   echo ' #######################################################################'
 }
 head () {
-clear
-echo -e '\n           ██╗    ██╗███████╗██████╗ ███╗   ███╗ █████╗ ███╗   ██╗       '
-echo -e '           ██║    ██║██╔════╝██╔══██╗████╗ ████║██╔══██╗████╗  ██║         '
-echo -e '           ██║ █╗ ██║█████╗  ██████╔╝██╔████╔██║███████║██╔██╗ ██║         '
-echo -e '           ██║███╗██║██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══██║██║╚██╗██║         '
-echo -e '           ╚███╔███╔╝███████╗██████╔╝██║ ╚═╝ ██║██║  ██║██║ ╚████║         '
-echo -e '            ╚══╝╚══╝ ╚══════╝╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝         '
-echo -e ' #######################################################################'
-echo -e ' ##   This script was made to automate repetitive maintenence tasks.  ##'
-echo -e ' ##     Do not use this script unless you know what you are doing.    ##'
-echo -e ' #######################################################################\n'
-${mid}
+  clear
+  echo -e '\n'
+  echo -e '         ██╗    ██╗███████╗██████╗ ███╗   ███╗ █████╗ ███╗   ██╗       '
+  echo -e '         ██║    ██║██╔════╝██╔══██╗████╗ ████║██╔══██╗████╗  ██║         '
+  echo -e '         ██║ █╗ ██║█████╗  ██████╔╝██╔████╔██║███████║██╔██╗ ██║         '
+  echo -e '         ██║███╗██║██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══██║██║╚██╗██║         '
+  echo -e '         ╚███╔███╔╝███████╗██████╔╝██║ ╚═╝ ██║██║  ██║██║ ╚████║         '
+  echo -e '          ╚══╝╚══╝ ╚══════╝╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝         '
+  echo -e ' #######################################################################'
+  echo -e ' #######################################################################'
+  echo -e ' ##   This script was made to automate repetitive maintenence tasks.  ##'
+  echo -e ' ##     Do not use this script unless you know what you are doing.    ##'
+  echo -e ' #######################################################################\n'
+  ${mid}
 }
 if [ ! -n "${mid}" ]; then
 mid=menu0
@@ -381,19 +384,20 @@ while :
 	  1) mid=menu1;;
 	  2) mid=menu2;;
 	  3) mid=menu3;;
+	  anti) anti;;
+      backup) backup "${arg1}" "${arg2}";;
+	  backup-full) bws;;
+	  fixperms) fixperms;;
+	  fail2ban) fail2ban;;
 	  home) mid=menu0;;
-      backup-full) bws;;
+	  honey) honey;;
+	  letsencrypt) letsencrypt;;
+	  nextcloud) nextcloud;;
+      netdata) netdata;;
       rws) rws;;
       rlws) rlws;;
+	  sslkeygen) sslkeygen "${arg1}";;
       wordpress) wordpress;;
-      nextcloud) nextcloud;;
-      letsencrypt) letsencrypt;;
-      netdata) netdata;;
-      fixperms) fixperms;;
-      sslkeygen) sslkeygen "${arg1}";;
-      backup) backup "${arg1}" "${arg2}";;
-      anti) anti;;
-	  honey) honey;;
       *) echo -e '\nI'\'m not sure I got that. Come Again'\?' && sleep 2;;
     esac
 done
