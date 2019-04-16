@@ -1,13 +1,6 @@
 # WebMan
 For the Lazy SysAdmin
 
-██╗    ██╗███████╗██████╗ ███╗   ███╗ █████╗ ███╗   ██╗
-██║    ██║██╔════╝██╔══██╗████╗ ████║██╔══██╗████╗  ██║
-██║ █╗ ██║█████╗  ██████╔╝██╔████╔██║███████║██╔██╗ ██║
-██║███╗██║██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══██║██║╚██╗██║
-╚███╔███╔╝███████╗██████╔╝██║ ╚═╝ ██║██║  ██║██║ ╚████║
- ╚══╝╚══╝ ╚══════╝╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝
-
 WebMan intends to help partially, and fully automate common Systems Administration tasks and setups.
 This script has been tested and used with PHP7.3-FPM in conjunction with nGinx.
 
