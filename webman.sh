@@ -33,7 +33,7 @@ wordpress () {
   rm latest.tar.gz
   echo "Downloaded and extrated latest version of wordpress."
   logger "Downloaded and extracted latest version of wordpress, fixed ownership."
-  sleep 3
+  read -p -r "Press any key to continue."
 }
 nextcloud () {
 # Downloads the latest version of nextcloud and unpacks it.
@@ -43,14 +43,14 @@ nextcloud () {
   rm latest.zip
   echo "Downloaded and extracted latest version of nextcloud."
   logger "Downloaded and extracted latest version of nextcloud."
-  sleep 3
+  read -p -r "Press any key to continue."
 }
 netdata () {
   confirmcommand "Install NetData Monitoring system"
   bash <(curl -Ss https://my-netdata.io/kickstart.sh) all
   echo "Installed NetData monitoring system."
   logger "Installed NetData monitoring system."
-  sleep 3
+  read -p -r "Press any key to continue."
 }
 letsencrypt () {
   confirmcommand "Install LetsEncrypt SSL tools"
@@ -293,7 +293,7 @@ sslkeygen () {
 
   if [ -z "$1" ]; then
   echo -e "You must specify a name for the SSL certificate."
-  sleep 2
+  read -p -r "Press any key to continue."
   else
   confirmcommand "Create a new SSL certificate for $HOSTNAME (Self-Signed)"
   openssl req -x509 -nodes -days 365 -newkey rsa:4096 -keyout "${ssldir}/$1.key" -out "${ssldir}/$1.crt"
@@ -317,7 +317,7 @@ sslkeygen () {
   openssl dhparam -out ${ssldir}/dhparam.pem 4096
   echo "Created new Diffie Helman Parameters for $HOSTNAME"
   logger "Created new Diffie Helman Parameters for $HOSTNAME"
-  sleep 3
+  read -p -r "Press any key to continue."
   fi
 }
 menu0 () {
