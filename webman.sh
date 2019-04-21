@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tested with Ubuntu 18.04. PHP 7.2
+# Tested with Ubuntu 18.04. nGinx PHP 7.3
 ssldir=/etc/nginx/ssl
 backupdir=/var/www/backups
 webdir=/var/www
@@ -53,18 +53,49 @@ netdata () {
   read -p -r "Press any key to continue."
 }
 letsencrypt () {
-  confirmcommand "Install LetsEncrypt SSL tools"
-  add-apt-repository ppa:certbot/certbot && apt update
-  echo -e "Let's encrypt supports apache and nginx.\\nWhich would you like to install?\\n1: Apache\\n2: nGinx"
-  read -r version
-  case $version in
-  1) apt install python-certbot-apache
-     echo -e "Installed Certbot for Apache."
-     logger "Installed Certbot for Apache.";;
-  2) apt install python-certbot-nginx
-     echo -e "Installed Certbot for nGinx."
-     logger "Installed Certbot for nGinx.";;
-  *) echo -e '\nI'\'m not sure I got that. Come Again'\?';;
+  install_le() {
+    confirmcommand "Install LetsEncrypt SSL tools"
+    add-apt-repository ppa:certbot/certbot && apt update
+    echo -e "Let's encrypt supports apache and nginx.\\nWhich would you like to install?\\n1: Apache\\n2: nGinx"
+    read -r version
+    case $version in
+    1) apt install python-certbot-apache
+       echo -e "Installed Certbot for Apache."
+       logger "Installed Certbot for Apache.";;
+    2) apt install python-certbot-nginx
+       echo -e "Installed Certbot for nGinx."
+       logger "Installed Certbot for nGinx.";;
+    *) echo -e '\nI'\'m not sure I got that. Come Again'\?';;
+    esac
+  }
+  issuecert() {
+  #Sets up LetsEncrypt and automatic renewal.
+  echo -e 'Please follow the on-screen prompts to issue a new certificate.\n'
+  if [ -z "$1" ]
+  	then
+  	echo "Please supply the public html folder of your domain. (not including ${webdir})"
+  	else
+  	if [ -z "$2" ]
+  		then
+  		echo 'Please supply the domain for LetsEncrypt to issue acertificate to.'
+  		else
+  	    certbot run -a webroot -i nginx --rsa-key-size 4096 -w "${webdir}/${arg1}" -d "${2}" -d "www.${arg2}"
+  	fi
+  fi
+  }
+  echo -e ' ############################################################################'
+  echo -e ' ##                                                                        ##'
+  echo -e ' ## install - Installs certbot and appropriate plugin.                     ##'
+  echo -e ' ## issue <domain_folder> <domain_name> - Issues certificates for domain.  ##'
+  echo -e ' ## renew - Manually renews all active certificates.                       ##'
+  echo -e ' ##                                                                        ##'
+  echo -e ' ############################################################################'
+  read -r lenc arg1 arg2
+  case $lenc in
+    1) install_le;;
+    2) issuecert "$arg1" "$arg2";;
+    3) certbot renew;;
+    *) echo -e '\nI'\'m not sure I got that. Come Again'\?';;
   esac
   read -p -r "Press any key to continue."
 }
@@ -353,7 +384,7 @@ menu3 () {
   echo ' ##  wordpress - Download latest wordpress version.                   ##'
   echo ' ##  nextcloud - Download latest nextcloud version.                   ##'
   echo ' ##  netdata - Builds & Installs latest NetData Monitoring System     ##'
-  echo ' ##  letsencrypt - Installs latest version of letsencrypt             ##'
+  echo ' ##  letsencrypt - LE Manager for installing, issuing and renewing    ##'
   echo ' ##  home - Back to main menu.                                        ##'
   echo ' #######################################################################'
 }
@@ -373,7 +404,7 @@ head () {
   echo -e ' #######################################################################\n'
   ${mid}
 }
-if [ ! -n "${mid}" ]; then
+if [ -z "${mid}" ]; then
 mid=menu0
 fi
 while :
