@@ -29,10 +29,11 @@ wordpress () {
 # Downloads the latest version of wordpress and unpacks it.
   wget https://wordpress.org/latest.tar.gz
   tar -xvf latest.tar.gz
+  curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o wordpress/wp-cli.phar
   sudo chown -R ${webuser} wordpress/ && echo -e "Fixed Ownership.\\n"
   rm latest.tar.gz
-  echo "Downloaded and extrated latest version of wordpress."
-  logger "Downloaded and extracted latest version of wordpress, fixed ownership."
+  echo "Downloaded and extrated latest version of wordpress and wp-cli."
+  logger "Downloaded and extracted latest version of wordpress, wp-cli, and fixed ownership."
   read -p -r "Press any key to continue."
 }
 nextcloud () {
@@ -331,6 +332,9 @@ sslkeygen () {
   echo "Created SSL certificates in ${ssldir}/${arg1}"
   logger "Created SSL certificates in ${ssldir}/${arg1}"
   fi
+  checkdiffie
+}
+checkdiffie () {
   # Check if DH parameters exist, and if not, prompt to create them.
   if [ ! -f "${ssldir}"/dhparam.pem ]; then
   echo -e "No Diffie Helman Parameters found.\n"
@@ -373,6 +377,7 @@ menu1 () {
 menu2 () {
   echo ' #######################################################################'
   echo ' ##  sslkeygen <certificate_name> - Self-Signed SSL & DH Parameters   ##'
+  echo ' ##  diffie - Checks and Generates Diffie Hellman Parameters          ##'
   echo ' ##  anti - Enables Simple Anti DDoS Measures                         ##'
   echo ' ##  honey - Installs MHN (Modern Honey Network)                      ##'
   echo ' ##  fail2ban - Installs and configures fail2ban jails                ##'
@@ -391,12 +396,12 @@ menu3 () {
 head () {
   clear
   echo -e '\n'
-  echo -e '         ██╗    ██╗███████╗██████╗ ███╗   ███╗ █████╗ ███╗   ██╗         '
-  echo -e '         ██║    ██║██╔════╝██╔══██╗████╗ ████║██╔══██╗████╗  ██║         '
-  echo -e '         ██║ █╗ ██║█████╗  ██████╔╝██╔████╔██║███████║██╔██╗ ██║         '
-  echo -e '         ██║███╗██║██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══██║██║╚██╗██║         '
-  echo -e '         ╚███╔███╔╝███████╗██████╔╝██║ ╚═╝ ██║██║  ██║██║ ╚████║         '
-  echo -e '          ╚══╝╚══╝ ╚══════╝╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝         '
+  echo -e '         ██╗    ██╗███████╗██████╗ ███╗   ███╗ █████╗ ███╗   ██╗        '
+  echo -e '         ██║    ██║██╔════╝██╔══██╗████╗ ████║██╔══██╗████╗  ██║        '
+  echo -e '         ██║ █╗ ██║█████╗  ██████╔╝██╔████╔██║███████║██╔██╗ ██║        '
+  echo -e '         ██║███╗██║██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══██║██║╚██╗██║        '
+  echo -e '         ╚███╔███╔╝███████╗██████╔╝██║ ╚═╝ ██║██║  ██║██║ ╚████║        '
+  echo -e '          ╚══╝╚══╝ ╚══════╝╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝        '
   echo -e ' #######################################################################'
   echo -e ' #######################################################################'
   echo -e ' ##   This script was made to automate repetitive maintenence tasks.  ##'
@@ -418,6 +423,7 @@ while :
 	  anti) anti;;
       backup) backup "${arg1}" "${arg2}";;
 	  backup-full) bws;;
+	  diffie) checkdiffie;;
 	  fixperms) fixperms;;
 	  fail2ban) fail2ban;;
 	  home) mid=menu0;;
