@@ -25,20 +25,20 @@ webuser=www-data:www-data
 logfile=logs/webman.log  
 
 ## Maintenance functions
-sslkeygen <certificate_name> - Self-Signed SSL & Diffie-Helman Parameters
-letsencrypt - LE Manager (installing, issuing certificates, renewing certificates)
-backup <save_as> <dir_to_backup> - Directory Backup
-backup-full - Full webserver backup                
-rws - Restarts Web Services                        
-rlws - Reloads all web services                                             
-fixperms - Fixes common web permissions issues.
+sslkeygen <certificate_name> - Self-Signed SSL & Diffie-Helman Parameters  
+letsencrypt - LE Manager (installing, issuing certificates, renewing certificates)  
+backup <save_as> <dir_to_backup> - Directory Backup  
+backup-full - Full webserver backup  
+rws - Restarts Web Services  
+rlws - Reloads all web services  
+fixperms - Fixes common web permissions issues.  
 
 ## Security Functions 
-anti - Enables Simple Anti DDoS Measures                       
-honey - Installs MHN (Modern Honey Network)
-fail2ban - Installs and configures fail2ban jails
+anti - Enables Simple Anti DDoS Measures  
+honey - Installs MHN (Modern Honey Network)  
+fail2ban - Installs and configures fail2ban jails  
 
 ## Downloads and Setups
-wordpress - Download latest wordpress version.
-nextcloud - Download latest nextcloud version.
-netdata - Builds & Installs latest NetData Monitoring System
+wordpress - Download latest wordpress version.  
+nextcloud - Download latest nextcloud version.  
+netdata - Builds & Installs latest NetData Monitoring System  
