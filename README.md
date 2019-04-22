@@ -7,22 +7,22 @@ If you find this useful to you, please leave a:star:! It really does help.
 ## What WebMan Does
 WebMan aims to help partially or fully automate many systems services setups and maintenance tasks that come with running web hosting services. It can assist in the setup or management the following services:
 
-fail2ban
-Modern Honey Network
-wordpress
-nextcloud
-netdata
-letsencrypt
+fail2ban  
+Modern Honey Network  
+wordpress  
+nextcloud  
+netdata  
+letsencrypt  
 
 ## Adjustable Variables
 
 You can adjust all of the default variables readily and easily to suit your needs.
 
-ssldir=/etc/nginx/ssl
-backupdir=/var/www/backups
-webdir=/var/www
-webuser=www-data:www-data
-logfile=logs/webman.log
+ssldir=/etc/nginx/ssl  
+backupdir=/var/www/backups  
+webdir=/var/www  
+webuser=www-data:www-data  
+logfile=logs/webman.log  
 
 ## Maintenance functions
 sslkeygen <certificate_name> - Self-Signed SSL & Diffie-Helman Parameters
