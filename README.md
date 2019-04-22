@@ -1,6 +1,6 @@
 # WebMan
 
-If you find this useful to you, please leave a :star:! It really does help.
+If you find this useful to you, please leave a:star:! It really does help.
 
 ![WebMan](https://i.gyazo.com/321fdd0f478c767d5362cc07bd3d3103.png)
 
