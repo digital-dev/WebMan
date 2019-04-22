@@ -24,11 +24,6 @@ webdir=/var/www
 webuser=www-data:www-data
 logfile=logs/webman.log
 
-## Security Functions 
-anti - Enables Simple Anti DDoS Measures                       
-honey - Installs MHN (Modern Honey Network)
-fail2ban - Installs and configures fail2ban jails
-
 ## Maintenance functions
 sslkeygen <certificate_name> - Self-Signed SSL & Diffie-Helman Parameters
 letsencrypt - LE Manager (installing, issuing certificates, renewing certificates)
@@ -38,7 +33,12 @@ rws - Restarts Web Services
 rlws - Reloads all web services                                             
 fixperms - Fixes common web permissions issues.
 
-## Downloads and Installations
+## Security Functions 
+anti - Enables Simple Anti DDoS Measures                       
+honey - Installs MHN (Modern Honey Network)
+fail2ban - Installs and configures fail2ban jails
+
+## Downloads and Setups
 wordpress - Download latest wordpress version.
 nextcloud - Download latest nextcloud version.
 netdata - Builds & Installs latest NetData Monitoring System
