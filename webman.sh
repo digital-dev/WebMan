@@ -33,7 +33,7 @@ wordpress () {
   sudo chown -R ${webuser} wordpress/ && echo -e "Fixed Ownership.\\n"
   rm latest.tar.gz
   echo "Downloaded and extrated latest version of wordpress and wp-cli."
-  logger "Downloaded and extracted latest version of wordpress, wp-cli, and fixed ownership."
+  logger "Downloaded and extracted latest version of wordpress and wp-cli."
   read -p -r "Press any key to continue."
 }
 nextcloud () {
